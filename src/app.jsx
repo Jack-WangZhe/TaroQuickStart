@@ -14,6 +14,7 @@ class App extends Component {
   config = {
     pages: [
       // 此处用来定义路由,其中定义的所有路由在编译时都会视为页面
+      'pages/test/test',
       'pages/index/index'
     ],
     window: {

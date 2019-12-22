@@ -462,3 +462,100 @@ import namedPng from '../../images/path/named.png'
 <Image src={require('../../img/background.jpg')}/>
 ```
 
+### 四.条件渲染
+> Taro由于需要适配各种客户端,故不能再渲染模板中使用if/else,只能实现处理好数组,之后遍历数组调用map进行显示
+#### 1.短路表达式
+* 值得注意的是 小程序在短路表达式渲染时，会出现true或者false的短暂出现，所以如果是要适配小程序，最好采用三元表达式来进行判断
+```jsx
+{
+  true||<Text>通过短路表达式决定无法显示</Text>
+}
+```
+
+#### 2.三元表达式
+* 比较通用的一种方式，jsx语法是不支持if操作符的，所以只能用三元表达式或者短路表达式
+```jsx
+render () {
+  let dom = null
+  dom = true?<Text>三元表达式条件正确</Text>:<Text>三元表达式条件不正确</Text>
+  return (
+    <View className='index'>
+      {dom}
+    </View>
+  )
+}
+```
+#### 3.列表渲染
+* 可以通过遍历数组的形式进行列表渲染,但在渲染的每个组件中需要给一个key,因为React通过diff比较算法,进行最快的计算与比较渲染页面[在页面元素发生变化的时候可以快速比较及渲染变化的元素]
+```jsx
+render () {
+  let {list} = this.state
+  return (
+    <View className='index'>
+      {
+        list.map((item, index)=> {
+          return(
+            <View key={item.id}>{item.name}</View>
+          )
+        })
+      }
+    </View>
+  )
+}
+```
+#### 4.组件传递
+* 通过`this.props.children`的方式可以在父组件中定义组件内容并传递给子组件,子组件可以获取父组件调用时包裹内部的内容
+* 注意:
+  * 请不要对this.props.children进行任何操作
+  * this.props.children无法用defaultProps设置默认内容
+  * 不能把this.props.children分解为变量再使用
+  * 也可以通过传递属性值的方式传递组件内容,如`<DialogModal content={<View>传递给子组件用于接收</View>}></DialogModal>`
+```jsx
+// 父组件
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text, Button } from '@tarojs/components'
+import DialogModal from './dialogmodal'
+export default class TestDialog extends Component {
+  config = {
+    navigationBarTitleText: '测试弹窗页面'
+  }
+  render () {
+    return (
+      <View className='index'>
+        <DialogModal>
+            <Text>我是传入的Text组件</Text>
+        </DialogModal>
+
+        <DialogModal>
+            <Button>我是传入的Button组件</Button>
+        </DialogModal>
+
+        <DialogModal>
+            <Image src={require('../../img/background.jpg')}></Image>
+        </DialogModal>
+      </View>
+    )
+  }
+}
+
+// 子组件
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+export default class DialogModal extends Component {
+  render () {
+    // 使用this.props.children可以获得父组件在引用当前组件时内部包含的内容
+    // 注意:
+    // 1. 请不要对this.props.children进行任何操作
+    // 2. this.props.children无法用defaultProps设置默认内容
+    // 3. 不能把this.props.children分解为变量再使用
+    return (
+      <View className='index'>
+        我是弹窗组件
+        {
+          this.props.children
+        }
+      </View>
+    )
+  }
+}
+```

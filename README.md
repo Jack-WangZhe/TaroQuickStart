@@ -559,3 +559,58 @@ export default class DialogModal extends Component {
   }
 }
 ```
+#### 5.事件处理
+* Taro事件采用驼峰命名
+* 在Taro中阻止事件冒泡,必须明确的使用stopPropagation
+* 向事件处理程序传递参数
+  * 任何组件的事件传递都要是on开头[为了小程序传递函数时生效],如果传递的事件不是on开头,则会视为字符串
+  * 只要当JSX组件传入的参数是函数,参数名就必须以on开头
+  * 以上是为了适配小程序,只做h5不需要关注
+* 实例代码
+```jsx
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text, Button } from '@tarojs/components'
+
+export default class Event extends Component {
+
+  config = {
+    navigationBarTitleText: '测试事件'
+  }
+
+  state = {
+    name: 'Jack'
+  }
+
+  test(event) {
+    // this是指向当前page的,若this指向了事件,则需要在调用时给定this.test.bind(this)传递全局的this
+    console.log(this.state.name)
+    // 获取点击事件,如果是大元素包含小元素,希望点击小元素的时候不触发大元素的onClick事件,则需要使用stopPropagation的方式阻止事件冒泡
+    console.log(event);
+    // 打出来的内容是0-Jack 1-event,则说明当添加函数参数时,参数在前,event事件对象在后
+    console.log(arguments);
+  }
+
+  render () {
+    return (
+      <View className='index'>
+        <Button onClick={this.test.bind(this, this.state.name)}>测试事件</Button>
+        <Button onClick={()=> {console.log('Susan')}}>测试直接添加箭头函数</Button>
+      </View>
+    )
+  }
+}
+```
+* 可以通过`process.env.TARO_ENV`获取当前环境名称,如果是微信则是weapp,如果是h5则是h5,使用环境可以用来渲染不同内容,比如不同的less文件
+```jsx
+const currentEnvName = process.env.TARO_ENV;
+if (currentEnvName === 'h5') {
+  require('./h5.less')
+} else {
+  require('./weapp.less')
+}
+```
+* Taro中书写样式常用类选择器【className】或自定义组件,样式只对当前组件有效。切记不要使用id选择器,标签选择器,属性选择器及层级选择器等，因为Taro会进行打包.
+* Taro中推荐使用flex布局，在h5和小程序都可以达到理想的效果
+
+
+
